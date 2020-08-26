@@ -3,6 +3,7 @@ package leaked_threads
 import (
 	"bytes"
 	"fmt"
+	"github.com/LourdesMoran/go-test-utils/utils"
 	"log"
 	"runtime"
 	"runtime/pprof"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-// TestingInspector tools to examine running tests suites
+// TestingInspector tools to examine running tests suites.
 type TestingInspector struct{}
 
 // RunWithGoroutineLeakageDetection detects potential Goroutines Leakage while running tests suites.
@@ -37,7 +38,7 @@ func (i *TestingInspector) RunWithGoroutineLeakageDetection(testName string, t *
 	var newGoroutinesStackTrace string
 	// filter results
 	for endKey := range finalStackTrace {
-		if i.isKeyInMap(endKey, initialStackTrace) {
+		if utils.IsKeyInMap(endKey, initialStackTrace) {
 			continue
 		}
 		if i.ignoredGoroutines(finalStackTrace[endKey]) {
@@ -83,20 +84,11 @@ func (i *TestingInspector) goroutineStackTraceToMap(stackTrace string) (goroutin
 	return
 }
 
-func (i *TestingInspector) isKeyInMap(key string, lookupMap map[string]string) bool {
-	for mapKey := range lookupMap {
-		if mapKey == key {
-			return true
-		}
-	}
-	return false
-}
-
 func (i *TestingInspector) ignoredGoroutines(stack string) bool {
 	ignoredGoroutines := []string{
-		// these leveldb goroutines are async terminated even after calling db.Close,
-		// so they may still alive after test end, thus cause false positive leak failures.
-		// sleeping after closing without knowing how much is not a good solution
+		// These leveldb goroutines are async terminated even after calling db.Close,
+		// so they may still live after the test ends and cause false positive leak failures.
+		// Sleeping after closing without knowing how much is not a good solution
 		// FIXME: Investigate a better way to handle these. There are several other projects on GitHub using goleveldb with this issue.
 		"leveldb/util.(*BufferPool).drain",
 		"goleveldb/leveldb.(*DB).compactionError",
