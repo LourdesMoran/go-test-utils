@@ -15,7 +15,7 @@ import (
 // TestingInspector tools to examine running tests suites.
 type TestingInspector struct{}
 
-// RunWithGoroutineLeakageDetection detects potential Goroutines Leakage while running tests suites.
+// RunGoroutineLeakDetection detects potential Goroutines Leakage while running tests suites.
 // Runs the given test and compares the amount of Goroutines previous and after the tests are ran.
 // If an increase of Goroutines is detected, prints a warning about the
 // specific test with the potential Goroutine Leakage and a stacktrace of the Goroutines.
@@ -23,7 +23,7 @@ type TestingInspector struct{}
 // testName: Name of the test
 // t: testing context
 // testFunc: test function
-func (i *TestingInspector) RunWithGoroutineLeakageDetection(testName string, t *testing.T, testFunc func(t *testing.T)) {
+func (i *TestingInspector) RunGoroutineLeakDetection(testName string, t *testing.T, testFunc func(t *testing.T)) {
 	initialStackTrace, initialGoroutineNumber := i.GetGoroutinesStackTrace()
 	// Run test suite
 	t.Run(testName, testFunc)
