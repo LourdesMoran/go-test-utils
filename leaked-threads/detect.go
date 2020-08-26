@@ -27,6 +27,7 @@ func (i *TestingInspector) RunGoroutineLeakDetection(testName string, t *testing
 	initialStackTrace, initialGoroutineNumber := i.GetGoroutinesStackTrace()
 	// Run test suite
 	t.Run(testName, testFunc)
+
 	time.Sleep(1 * time.Second) // A moment for all pending goroutines to finish
 	finalStackTrace, finalGoroutineNumber := i.GetGoroutinesStackTrace()
 	log.Printf("%s: %s %d %d",
@@ -57,12 +58,13 @@ func (i *TestingInspector) RunGoroutineLeakDetection(testName string, t *testing
 	}
 }
 
+// GetGoroutinesStackTrace returns a map of the goroutines stack trace and the total number of goroutines.
 func (i *TestingInspector) GetGoroutinesStackTrace() (goroutines map[string]string, total int) {
 	startingGoroutineNumber := runtime.NumGoroutine()
 	var b bytes.Buffer
 	err := pprof.Lookup("goroutine").WriteTo(&b, 1)
 	if err != nil {
-		log.Printf("%s: %s", "goroutine-leakage-detection", err.Error())
+		panic(fmt.Sprintf("%s: %s", "goroutine-leakage-detection", err.Error()))
 	}
 	startStackTrace := i.goroutineStackTraceToMap(b.String())
 
