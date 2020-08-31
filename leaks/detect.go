@@ -15,10 +15,9 @@ import (
 // Inspector tools to examine running tests suites.
 type Inspector struct{}
 
-// RunGoroutineLeakDetection detects potential Goroutines Leakage while running tests suites.
-// Runs the given test and compares the Goroutines previous and after the tests are ran.
-// If an increase of Goroutines is detected raises panic about the
-// specific test with the potential Goroutine Leakage and a stacktrace of the Goroutines.
+// RunGoroutineLeakDetection detects potential Goroutines Leakage while running a test.
+// Compares the Goroutines previous and after the test is run. If an increase of Goroutines is detected raises
+// panic about the specific test with the potential Goroutine Leakage and a stacktrace of the Goroutines.
 // Params:
 // testName: Name of the test
 // t: testing context
