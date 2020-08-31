@@ -1,4 +1,4 @@
-package leaked_threads
+package leaks
 
 import (
 	"bytes"
@@ -12,18 +12,18 @@ import (
 	"time"
 )
 
-// TestingInspector tools to examine running tests suites.
-type TestingInspector struct{}
+// Inspector tools to examine running tests suites.
+type Inspector struct{}
 
 // RunGoroutineLeakDetection detects potential Goroutines Leakage while running tests suites.
-// Runs the given test and compares the amount of Goroutines previous and after the tests are ran.
-// If an increase of Goroutines is detected, prints a warning about the
+// Runs the given test and compares the Goroutines previous and after the tests are ran.
+// If an increase of Goroutines is detected raises panic about the
 // specific test with the potential Goroutine Leakage and a stacktrace of the Goroutines.
 // Params:
 // testName: Name of the test
 // t: testing context
 // testFunc: test function
-func (i *TestingInspector) RunGoroutineLeakDetection(testName string, t *testing.T, testFunc func(t *testing.T)) {
+func (i *Inspector) RunGoroutineLeakDetection(testName string, t *testing.T, testFunc func(t *testing.T)) {
 	initialStackTrace, initialGoroutineNumber := i.GetGoroutinesStackTrace()
 	// Run test suite
 	t.Run(testName, testFunc)
@@ -59,7 +59,7 @@ func (i *TestingInspector) RunGoroutineLeakDetection(testName string, t *testing
 }
 
 // GetGoroutinesStackTrace returns a map of the goroutines stack trace and the total number of goroutines.
-func (i *TestingInspector) GetGoroutinesStackTrace() (goroutines map[string]string, total int) {
+func (i *Inspector) GetGoroutinesStackTrace() (goroutines map[string]string, total int) {
 	startingGoroutineNumber := runtime.NumGoroutine()
 	var b bytes.Buffer
 	err := pprof.Lookup("goroutine").WriteTo(&b, 1)
@@ -71,7 +71,7 @@ func (i *TestingInspector) GetGoroutinesStackTrace() (goroutines map[string]stri
 	return startStackTrace, startingGoroutineNumber
 }
 
-func (i *TestingInspector) goroutineStackTraceToMap(stackTrace string) (goroutines map[string]string) {
+func (i *Inspector) goroutineStackTraceToMap(stackTrace string) (goroutines map[string]string) {
 	goroutines = make(map[string]string)
 	lines := strings.Split(stackTrace, "\n")
 	header := ""
@@ -86,12 +86,12 @@ func (i *TestingInspector) goroutineStackTraceToMap(stackTrace string) (goroutin
 	return
 }
 
-func (i *TestingInspector) ignoredGoroutines(stack string) bool {
+func (i *Inspector) ignoredGoroutines(stack string) bool {
 	ignoredGoroutines := []string{
 		// These leveldb goroutines are async terminated even after calling db.Close,
 		// so they may still live after the test ends and cause false positive leak failures.
 		// Sleeping after closing without knowing how much is not a good solution
-		// FIXME: Investigate a better way to handle these. There are several other projects on GitHub using goleveldb with this issue.
+		// FIXME: Investigate a better way to handle these.
 		"leveldb/util.(*BufferPool).drain",
 		"goleveldb/leveldb.(*DB).compactionError",
 		"goleveldb/leveldb.(*DB).mCompaction",
